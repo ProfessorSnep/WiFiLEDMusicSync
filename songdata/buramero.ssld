@@ -1,0 +1,10 @@
+#ALBUM Believe again／Brightest Melody／Over The Next Rainbow
+#TITLE Brightest Melody
+
+// COLORS
+COLOR RUBY 255 0 255
+
+// START
+1 ON
+3 SET YELLOW
+10 SET 255 180 0
