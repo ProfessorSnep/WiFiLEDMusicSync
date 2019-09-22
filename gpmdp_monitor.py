@@ -35,7 +35,7 @@ def update(json_data):
         last_time = 0
     delta = current - last_time
     if (delta != 0):
-        song_service.on_time_change(current, current - last_time)
+        song_service.on_time_change(current)
     last_time = current
 
 

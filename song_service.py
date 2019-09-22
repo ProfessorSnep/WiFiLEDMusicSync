@@ -91,26 +91,26 @@ def on_song_change(song):
         func(current_song_data, current_song_info)
 
 
-def on_time_change(current, delta):
+def on_time_change(current):
     global current_time
+    delta = current - current_time
     current_time = current
-    if (delta != current):
+    if current_song_data != None:
         if (delta < 0):
             run_last(current)
-        if current_song_data != None:
-            events = current_song_data.events
-            effective_time = current + COMMAND_DELAY
-            if jump_time > 0:
-                effective_time -= jump_time
+        events = current_song_data.events
+        effective_time = current + COMMAND_DELAY
+        if jump_time > 0:
+            effective_time -= jump_time
 
-            def filter_events(event):
-                time, cmd, args = event
-                return time * 1000 > effective_time - delta and time * 1000 <= effective_time
-            to_run = list(filter(filter_events, events))
-            to_run.sort(key=lambda x: x[0])
-            for ev in to_run:
-                time, cmd, args = ev
-                run_command(cmd, args)
+        def filter_events(event):
+            time, cmd, args = event
+            return time * 1000 > effective_time - delta and time * 1000 <= effective_time
+        to_run = list(filter(filter_events, events))
+        to_run.sort(key=lambda x: x[0])
+        for ev in to_run:
+            time, cmd, args = ev
+            run_command(cmd, args)
 
 
 def on_play_pause(playing, current_time):
