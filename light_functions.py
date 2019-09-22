@@ -6,6 +6,15 @@ from magichome import CustomPresets as presets
 home_devices = []
 
 
+@song_function("OVERLAY")
+def set_overlay(data, info, args):
+    speed = int(args[0])
+    color1, color2 = get_two_colors_from_args(data, args[1:7])
+    for d in home_devices:
+        d.set_custom(presets.create(
+            presets.OVERLAY_START_TO_END, speed, color1, color2))
+
+
 @song_function("FADE")
 def set_fade(data, info, args):
     speed = int(args[0])
