@@ -1,4 +1,3 @@
-import gpmdp_monitor
 import time
 import song_light_data
 import json
@@ -8,7 +7,6 @@ import os
 with codecs.open("settings.json", "r", "utf-8") as sfile:
     settings = json.loads(sfile.read())
 DATA_FOLDER = os.path.join(os.getcwd(), settings['song_data_folder'])
-LIGHT_IPS = settings['light_ips']
 
 META_MAP = {}
 data_files = os.listdir(DATA_FOLDER)
@@ -25,13 +23,36 @@ for df in data_files:
 current_song_data = None
 current_song_info = None
 
+FUNCTION_MAP = {}
+SONG_RESET_FUNCTIONS = []
+SONG_STOP_FUNCTIONS = []
+
+COMMAND_DELAY = int(settings['command_delay'])
+
 
 def run_command(cmd, args):
-    # TODO add more functions!
-    if (cmd == "PRINT"):
-        print("Song function: {0}".format(" ".join(args)))
+    if cmd in FUNCTION_MAP:
+        func = FUNCTION_MAP[cmd]
+        if func != None:
+            print(f"Running command {cmd} with args {args}")
+            func(current_song_data, current_song_info, args)
     else:
-        print("Unknown command: \"{0}\" ran with args {1}".format(cmd, args))
+        print(f"Unknown command: \"{cmd}\" ran with args {args}")
+
+
+def run_last(current_time):
+    if current_song_data != None:
+        events = current_song_data.events
+        effective_time = current_time
+
+        def filter_events(event):
+            time, cmd, args = event
+            return time * 1000 < effective_time
+        to_run = list(filter(filter_events, events))
+        to_run.sort(key=lambda x: x[0])
+        if len(to_run) > 0:
+            time, cmd, args = to_run.pop()
+            run_command(cmd, args)
 
 
 def on_song_change(song):
@@ -40,6 +61,8 @@ def on_song_change(song):
     current_song_info = song
     if (song == None):
         print("Stopping")
+        for func in SONG_STOP_FUNCTIONS:
+            func()
         return
 
     album = song['album']
@@ -51,16 +74,21 @@ def on_song_change(song):
             current_song_data = song_light_data.parse_file(data_file)
             print(current_song_data.events)
     print("Song Change", song)
+    for func in SONG_RESET_FUNCTIONS:
+        func(current_song_data, current_song_info)
 
 
 def on_time_change(current, delta):
     if (delta != current):
+        if (delta < 0):
+            run_last(current)
         if current_song_data != None:
             events = current_song_data.events
+            effective_time = current + COMMAND_DELAY
 
             def filter_events(event):
                 time, cmd, args = event
-                return time * 1000 > current - delta and time * 1000 <= current
+                return time * 1000 > effective_time - delta and time * 1000 <= effective_time
             to_run = list(filter(filter_events, events))
             to_run.sort(key=lambda x: x[0])
             for ev in to_run:
@@ -68,16 +96,30 @@ def on_time_change(current, delta):
                 run_command(cmd, args)
 
 
-def on_play_pause(playing):
+def on_play_pause(playing, current_time):
     print("Playing" if playing else "Paused")
+    if playing:
+        run_last(current_time)
 
 
-gpmdp_monitor.on_song_change(on_song_change)
-gpmdp_monitor.on_time_change(on_time_change)
-gpmdp_monitor.on_play_pause(on_play_pause)
+def song_function(*args, **kwargs):
+    def decorator(func):
+        FUNCTION_MAP[args[0].upper()] = func
+        return func
+    return decorator
 
-# TODO flip this so the GPM monitor is the service
-# handle events in the GPM service, call this service directly
 
-if __name__ == "__main__":
-    gpmdp_monitor.start_monitor()
+def song_reset(func):
+    SONG_RESET_FUNCTIONS.append(func)
+    return func
+
+
+def song_stop(func):
+    SONG_STOP_FUNCTIONS.append(func)
+    return func
+
+
+@song_function("PRINT")
+def print_func(data, info, args):
+    print_string = " ".join(args)
+    print(f"Song function: {print_string}")

@@ -8,13 +8,72 @@ import struct
 import datetime
 
 
+class CustomPresets:
+    GRADUAL = 1
+    UP_FADE_GRADUAL = 2
+    FLASH = 3
+    STROBE = 4
+    RUN_START_TO_END = 5
+    RUN_END_TO_START = 6
+    RUN_MID_TO_ENDS = 7
+    RUN_ENDS_TO_MIDDLE = 8
+    OVERLAY_START_TO_END = 9
+    OVERLAY_END_TO_START = 10
+    OVERLAY_MID_TO_ENDS = 11
+    OVERLAY_ENDS_TO_MID = 12
+    RUN_FADE_START_TO_END = 13
+    RUN_FADE_END_TO_START = 14
+    FLOW_START_TO_END = 15
+    FLOW_END_TO_START = 16
+    RUN_BG_START_TO_END = 17
+    RUN_BG_END_TO_START = 18
+    RUN_TWO_START_TO_END = 19
+    RUN_TWO_END_TO_START = 20
+    RUN_TWO_ALT_FADE_START_TO_END = 21
+    RUN_TWO_ALT_FADE_END_TO_START = 22
+    RUN_TWO_ALT_START_TO_END = 23
+    RUN_TWO_ALT_END_TO_START = 24
+    FADE_FLOW_START_TO_END = 25
+    FADE_FLOW_END_TO_START = 26
+    SEVEN_COLOR_ALT_RUN_START_TO_END = 27
+    SEVEN_COLOR_ALT_RUN_END_TO_START = 28
+    SEVEN_COLOR_ALT_START_TO_END = 29
+    SEVEN_COLOR_ALT_END_TO_START = 30
+    SEVEN_COLOR_ALT_POINT_START_TO_END = 31
+    SEVEN_COLOR_ALT_POINT_END_TO_START = 32
+    SEVEN_COLOR_OVERLAY_START_TO_END = 33
+    SEVEN_COLOR_OVERLAY_END_TO_START = 34
+    SEVEN_COLOR_OVERLAY_MID_TO_ENDS = 35
+    SEVEN_COLOR_OVERLAY_ENDS_TO_MID = 36
+    SEVEN_COLOR_FLOW_START_TO_END = 37
+    SEVEN_COLOR_FLOW_END_TO_START = 38
+    SEVEN_COLOR_FADE_START_TO_END = 39
+    SEVEN_COLOR_FADE_END_TO_START = 40
+    SEVEN_COLOR_RUN_START_TO_END = 41
+    SEVEN_COLOR_RUN_END_TO_START = 42
+    SEVEN_COLOR_FADE_OUT_START_TO_END = 43
+    SEVEN_COLOR_FADE_OUT_END_TO_START = 44
+
+    def create(preset, speed, color1, color2):
+        step = [preset, speed]
+        if color1 != None:
+            step += color1
+        else:
+            step += [0, 0, 0]
+        if color2 != None:
+            step += color2
+        else:
+            step += [0, 0, 0]
+        return step
+
+
 class Device:
     def __init__(self, device_ip, keep_alive=True):
         self.device_ip = device_ip
         self.API_PORT = 5577
         self.keep_alive = keep_alive
         self.make_socket()
-                
+
     def make_socket(self):
         try:
             self.s.close()
@@ -44,7 +103,7 @@ class Device:
     def set_color(self, r=0, g=0, b=0):
         message = [0x31, r, g, b, 0x00, 0x00, 0x0f]
         self.send_message(message)
-            
+
     def set_custom(self, *steps):
         # 0x51 0xF0 STEP[ NUM SPEED COLOR1(R, G, B) COLOR2(R, G, B) 0x0F ]
         # STEP 9 BYTES, 32 STEPS
@@ -67,7 +126,7 @@ class Device:
         preset_b = preset_number % 255
         message = [0x61, preset_a, preset_b, speed, 0x0F]
         self.send_message(message)
-            
+
     def send_message(self, message):
         data = message + [self.calculate_checksum(message)]
         self.send_bytes(*data)

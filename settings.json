@@ -1,6 +1,4 @@
 {
-    "light_ips": [
-        "10.0.0.20"
-    ],
-    "song_data_folder": "songdata"
+    "song_data_folder": "songdata",
+    "command_delay": 300
 }
