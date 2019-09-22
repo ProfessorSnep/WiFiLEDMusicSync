@@ -9,8 +9,10 @@ class SongData:
     def __init__(self):
         self.title = None
         self.album = None
+        self.artist = None
         self.events = []
         self.variables = {}
+        self.is_fallback = False
 
     def get_variable(self, var):
         var = var.upper()
@@ -30,6 +32,9 @@ def parse_meta(data, line):
             data.album = body
         elif head.upper() == "TITLE":
             data.title = body
+        elif head.upper() == "ARTIST":
+            data.is_fallback = True
+            data.artist = body
 
 
 def parse_line(data, line):
