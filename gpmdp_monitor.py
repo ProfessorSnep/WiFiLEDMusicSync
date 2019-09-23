@@ -22,15 +22,15 @@ def update(json_data):
     if (playing != json_data['playing']):
         playing = json_data['playing']
         song_service.on_play_pause(playing, current)
-        if (not playing):
-            if (json_data['song']['title'] == None):
-                song = json_data['song']
-                song_service.on_song_change(None)
-                return
     if song != json_data['song']:
         song = json_data['song']
         data = song.copy()
         data['length'] = json_data['time']['total']
+        if not playing:
+            if (json_data['song']['title'] == None):
+                song = json_data['song']
+                song_service.on_song_change(None)
+                return
         song_service.on_song_change(data)
         last_time = 0
     delta = current - last_time

@@ -1,7 +1,2 @@
 .vscode
 __pycache__
-/songdata
-!/songdata/buramero.ssld
-!/songdata/koininaritai.ssld
-!/songdata/happypartytrain.ssld
-!/songdata/yuukidoko.ssld
